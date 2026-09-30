@@ -9,8 +9,10 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Taskbar;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -48,6 +50,9 @@ import util.DarkTheme;
 import util.DateTimeUtil;
 
 public class MainFrame extends JPanel {
+
+    private static final String WINDOW_TITLE =
+            "Market Surveillance Engine for Electronic Trading";
 
     private static final String MODULE_DASHBOARD = "Dashboard";
     private static final String MODULE_MARKET_DATA = "Market Data";
@@ -561,25 +566,65 @@ public class MainFrame extends JPanel {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            DarkTheme.install();
+        SwingUtilities.invokeLater(MainFrame::openWindow);
+    }
 
-            final MainFrame content = new MainFrame();
-            final JFrame frame = new JFrame("Market Surveillance Engine for Electronic Trading");
-            frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-            frame.setMinimumSize(new Dimension(1240, 760));
-            frame.setSize(1560, 960);
-            frame.setLocationRelativeTo(null);
-            frame.setContentPane(content);
-            frame.addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosing(WindowEvent e) {
-                    content.shutdown();
-                    frame.dispose();
-                    System.exit(0);
-                }
-            });
-            frame.setVisible(true);
+    public static void openWindow() {
+        DarkTheme.install();
+
+        final MainFrame content = new MainFrame();
+        final JFrame frame = new JFrame(WINDOW_TITLE);
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        frame.setMinimumSize(new Dimension(1240, 760));
+        frame.setSize(1560, 960);
+        frame.setLocationRelativeTo(null);
+        frame.setContentPane(content);
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                content.shutdown();
+                frame.dispose();
+                System.exit(0);
+            }
         });
+
+        frame.setVisible(true);
+        bringToFront(frame);
+    }
+
+    private static void bringToFront(final JFrame frame) {
+        frame.setAlwaysOnTop(true);
+        frame.toFront();
+
+        if (Taskbar.isTaskbarSupported()) {
+            Taskbar taskbar = Taskbar.getTaskbar();
+            if (taskbar.isSupported(Taskbar.Feature.USER_ATTENTION_WINDOW)) {
+                try {
+                    taskbar.requestWindowUserAttention(frame);
+                } catch (Exception ignored) {
+                    ignored.getMessage();
+                }
+            }
+        }
+
+        Timer attention = new Timer(500, null);
+        attention.addActionListener(new ActionListener() {
+            private int attempts = 0;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                attempts++;
+                if (attempts < 4) {
+                    frame.toFront();
+                    frame.requestFocus();
+                    return;
+                }
+                frame.setAlwaysOnTop(false);
+                frame.requestFocus();
+                ((Timer) e.getSource()).stop();
+            }
+        });
+        attention.setRepeats(true);
+        attention.start();
     }
 }

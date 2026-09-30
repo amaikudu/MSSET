@@ -26,3 +26,6 @@ nbproject/
 # Personal study notes for the viva - kept locally, not part of the submission
 VIVA-GUIDE.txt
 PRESENTATION-SPLIT.txt
+
+# In case the repository is cloned inside itself, never track the copy
+MSSET/

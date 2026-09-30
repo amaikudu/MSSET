@@ -49,9 +49,14 @@ market engine.
 **Requirements:** a Java JDK — version 8 or newer. Nothing else. No database, no
 build tool, no external libraries.
 
+**Easiest way - no Terminal needed:** double-click **`START-APP.command`**.
+It compiles the project if needed and opens the application window.
+
+**From Terminal:**
+
 ```bash
-git clone https://github.com/<your-username>/<your-repo>.git
-cd <your-repo>
+git clone https://github.com/amaikudu/MSSET.git
+cd MSSET
 ./run-demo.sh
 ```
 
@@ -66,6 +71,7 @@ java -cp build Main
 
 | Command | What it does |
 |---|---|
+| `START-APP.command` | Double-click in Finder to compile and start the app |
 | `./build.sh` | Compile everything and run the pre-submission check |
 | `./run-demo.sh` | Start the application |
 | `./run-smoke-test.sh` | Build all ten modules headlessly and fail on any exception |
