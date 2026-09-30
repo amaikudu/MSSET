@@ -170,3 +170,40 @@ Built by Pranav, Shivika and Vishal.
 
 - `VIVA-GUIDE.txt` — file-by-file explanation of the code and the reasoning
 - `PRESENTATION-SPLIT.txt` — who presents which module, and what to demonstrate
+
+---
+
+## Publishing to GitHub
+
+```bash
+# 1. Stage and commit changes
+git add -A
+git commit -m "Describe what you changed"
+
+# 2. Push
+git push
+```
+
+If you have not connected the repository to GitHub yet:
+
+```bash
+# Create an EMPTY repository on github.com first - do not add a README,
+# .gitignore or licence, because this project already has them.
+git remote add origin https://github.com/<your-username>/<your-repo>.git
+git branch -M main
+git push -u origin main
+```
+
+GitHub no longer accepts your account password over HTTPS. When it asks for a
+password, paste a **personal access token**:
+
+1. GitHub -> Settings -> Developer settings -> Personal access tokens
+2. "Tokens (classic)" -> Generate new token -> tick the `repo` scope
+3. Copy the token and paste it as the password
+
+### Why GitHub Pages cannot host this
+
+GitHub Pages serves static files (HTML, CSS, JavaScript) only. This is a Java
+desktop application and needs a JVM, so it cannot run in a browser. Use the
+screenshots in `shots/` to show what it looks like, and run it locally with
+`./run-demo.sh`.
