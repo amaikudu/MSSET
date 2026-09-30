@@ -22,3 +22,7 @@ build/
 *.iml
 .vscode/
 nbproject/
+
+# Personal study notes for the viva - kept locally, not part of the submission
+VIVA-GUIDE.txt
+PRESENTATION-SPLIT.txt
