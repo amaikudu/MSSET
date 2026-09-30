@@ -1,0 +1,750 @@
+################################################################################
+#                                                                              #
+#   PRESENTATION SPLIT - 3 PEOPLE                                              #
+#   MARKET SURVEILLANCE ENGINE FOR ELECTRONIC TRADING                          #
+#                                                                              #
+#   Who presents which module, what to say, what to demo, and the questions    #
+#   EACH person must be able to answer alone.                                  #
+#                                                                              #
+#   Read the section with your own name. Then read PART 5 (shared answers) -   #
+#   all three of you will be asked architecture questions.                     #
+#                                                                              #
+################################################################################
+
+ALL TEN MODULES NOW EXIST
+------------------------
+  The application is complete: all ten modules are built, integrated into one
+  window with sidebar navigation, and verified. Nothing is missing.
+
+     Dashboard | Market Data | Order Book | Surveillance | Rule Builder
+     Alerts | Charting & Analytics | Audit Reports | Replay | Settings
+
+  Entry point: src/Main.java  ->  gui.MainFrame  (the shell with the sidebar)
+
+  This split assigns all ten modules across the three of you, and every person
+  can show real, running code for every module they present.
+
+
+################################################################################
+# PART 1 - THE SPLIT AT A GLANCE
+################################################################################
+
+  PRANAV   - Market Data               499 lines
+           - Charting & Analytics      851 lines
+                                 total 1,350 lines   2 modules
+
+  SHIVIKA  - Alerts                    710 lines
+           - Settings                1,013 lines
+           - Surveillance              597 lines
+                                 total 2,320 lines   3 modules
+
+  VISHAL   - Dashboard                 547 lines
+           - Audit Reports             676 lines
+           - Replay                    626 lines
+                                 total 1,849 lines   3 modules
+
+  WHY VISHAL GETS THE SIMPLER SET - the honest technical reason, and it is a REAL
+  reason you can defend:
+    These are the modules with NO custom painting and the fewest custom cell
+    renderers. Dashboard has zero of both. Audit Reports has no painting. Replay
+    has no painting and no renderers - just standard components wired normally.
+    Vishal can explain his whole section without ever discussing graphics
+    coordinates or colour logic.
+
+  WHY THE GROUPS WORK TOGETHER (say this - it shows you planned the split):
+    PRANAV  : the market itself. Market Data is the live input, Analytics turns
+              that same input into statistics. Input and output.
+    SHIVIKA : detection and control. Surveillance watches the market, Alerts is
+              where a detection is reviewed, Settings configures the detection.
+              One complete story: detect, review, configure.
+    VISHAL  : the surrounding shell and the record. Dashboard summarises
+              everything, Audit Reports records it, Replay re-examines history.
+
+  WHY THE LINE NUMBERS ARE UNEVEN AND THAT IS CORRECT:
+    Shivika has the most lines but two of her modules share one story, so one
+    explanation covers both. Pranav has the fewest lines but the hardest single
+    file - the hand-drawn chart. Vishal has three modules but they are the
+    simplest to explain, which is exactly why he gets three.
+
+
+################################################################################
+# PART 2 - WHAT EACH PERSON SAYS AND DEMOS
+################################################################################
+
+--------------------------------------------------------------------------------
+PRANAV - Market Data  +  Charting & Analytics
+--------------------------------------------------------------------------------
+MERIT: 501 + 849 = 1,350 lines.
+
+YOUR OPENING LINE (you go first, because the market feed starts the demo):
+  "I am presenting the two modules that show what is happening in the market.
+   Market Data is the live feed, and Charting and Analytics turns that same feed
+   into statistics and charts. Both are driven by the same market clock."
+
+MODULE 1 - MARKET DATA (about 2.5 minutes)
+  WHAT TO SAY:
+    - The application simulates 20 instruments. A single timer updates every
+      price once per second.
+    - The table is read-only because the data belongs to the service, not the
+      user.
+    - Search filters as you type, matching symbol OR company name.
+    - The watchlist is a JList - a separate control for instruments you care about.
+    - The right side shows market breadth: how many are up, down and unchanged.
+
+  WHAT TO DEMO (do it in this order - it builds):
+    1. Point at the table updating and the "Updates:" counter climbing.
+       Say: "the feed is live right now, not a screenshot."
+    2. Type "nv" in the search box. The table collapses to NVDA.
+       Say: "the search fires on every keystroke - there is a document listener
+       on the text field, so the table refreshes as you type."
+    3. Clear it, then click a row and double-click it. The detail dialog opens.
+    4. Right-click a row to show the popup menu (Add to watchlist, Copy symbol).
+    5. Hold up the LIVE toggle - press it to pause and resume the market.
+
+  YOUR COMPONENTS TO NAME (18):
+    JTable, JScrollPane, JTextField, JComboBox (x2), JButton, JToggleButton,
+    JCheckBox, JSpinner, JList, JPopupMenu, JMenuItem, JOptionPane, JLabel,
+    JPanel, DefaultListModel, DefaultTableModel, Box.
+
+  THE CODE DETAIL THAT EARNS MARKS:
+    In refreshTable() we remember WHICH SYMBOL was selected, rebuild the table,
+    then re-select that symbol. Without it the selection jumps to the top every
+    second and the user cannot read anything. Say: "we preserve the user's
+    selection by symbol, not by row number, because the rows move."
+
+MODULE 2 - CHARTING & ANALYTICS (about 2.5 minutes)
+  WHAT TO SAY:
+    - This module keeps a rolling history of 120 observations per instrument and
+      draws the charts itself with Graphics2D - no chart library.
+    - All the statistics come from one method, buildStats(), so every screen
+      always shows consistent figures.
+    - The confidence to project: "the chart auto-scales, it draws a moving
+      average, and it has a hover crosshair."
+
+  WHAT TO DEMO:
+    1. Point at the price line chart. Move the mouse over it to show the
+       crosshair and the value tooltip. This is the moment people remember.
+    2. Turn on the Smoothing slider - a purple moving-average line appears.
+    3. Toggle Grid / Fill area / Moving average checkboxes to show they work.
+    4. Change the metric combo box - the chart title changes.
+    5. Point at the Execution rate and Cancellation rate progress bars.
+    6. Click "Snapshot" to show the simulated export dialog.
+
+  YOUR COMPONENTS TO NAME (16):
+    JPanel, JLabel, JButton, JComboBox (x3), JCheckBox (x3), JToggleButton,
+    JSlider, JSpinner, JProgressBar (x2), JTable, JScrollPane, JTabbedPane,
+    JTextArea, JOptionPane.
+
+  THE CODE DETAIL THAT EARNS MARKS (rehearse this one - it is a favourite):
+    "Screen Y increases downward, but price increases upward. So to draw a
+     higher price higher on the chart, we invert it:
+        y = top + height * (max - value) / range
+     The (max - value) is what flips it. Without that subtraction the chart
+     would be upside down."
+
+  LIKELY QUESTIONS FOR YOU (see PART 5 for the shared ones):
+    Q: How is the chart drawn without a library?
+    A: In paintComponent with Graphics2D. I find the minimum and maximum in the
+       series, scale each value into pixel coordinates, and call drawPolyline.
+    Q: What is your min and max calculation for?
+    A: To auto-scale the Y axis to the data, plus 10% padding so the line does
+       not touch the edges. If all prices were identical, range would be zero and
+       we would divide by zero, so the padding has a minimum of 0.05.
+    Q: Why is the history limited to 120 points?
+    A: To keep memory and drawing time constant no matter how long it runs. It is
+       a rolling window - we add the newest and remove the oldest.
+
+--------------------------------------------------------------------------------
+PRANAV - ALSO: Order Book (if you want a third, otherwise it is SHIVIKA's call)
+--------------------------------------------------------------------------------
+  NOTE: Order Book (718 lines) is not assigned above because Pranav already has
+  the market story and Shivika has Surveillance. If your sir wants every module
+  presented by its author, give Order Book to PRANAV - it is the natural partner
+  to Market Data: one shows the market, the other lets you trade in it. It has
+  TWO custom cell renderers and no painting.
+
+  WHAT TO SAY: "This is the market depth ladder. Bids are green, asks are red,
+  and the size column shows quotes as a bar. Clicking a level loads that price
+  into the order form."
+
+  WHAT TO DEMO:
+    1. Point at the bid/ask ladder and the Best Bid / Best Ask / Mid / Spread row.
+    2. Click a level - the price jumps into the Limit price field.
+    3. Press "Place Order". The order appears in the Session orders table at the
+       bottom with status PENDING.
+    4. WAIT 2-3 SECONDS. The engine matches it: the status becomes PARTIALLY
+       FILLED and then FILLED, and the Filled column fills in.
+       Say: "that is a real matching engine - the order executed against the
+       simulated market, it is not a fake row."
+    5. Place an order far from the market price, then press "Cancel Order" and
+       confirm. Status becomes CANCELLED.
+    6. Right-click an order for the popup menu.
+
+  COMPONENTS (18): JTable (x2), JComboBox, JSpinner (x3), JRadioButton (x2),
+    ButtonGroup, JTextField, JButton (x3), JToggleButton, JCheckBox, JPopupMenu,
+    JMenuItem, JOptionPane, JScrollPane, JLabel, JPanel.
+
+  THE CODE DETAIL THAT EARNS MARKS:
+    "Orders fill in PARTS. The engine takes the smaller of what is left on the
+     order and a random slice, so nothing can over-fill. Without that Math.min an
+     order for 500 shares could be filled by 2000 and the remaining quantity
+     would go negative."
+
+  A BUG WE FIXED (good to volunteer):
+    "The depth quantities were regenerated from a shared random generator on
+     every tick, so the whole ladder flickered. We now derive each level's size
+     deterministically from the symbol, the side and the level number, so the
+     ladder is stable until the price actually moves."
+
+--------------------------------------------------------------------------------
+SHIVIKA - Alerts  +  Settings + Surveillance
+--------------------------------------------------------------------------------
+MERIT: 710 + 1013 + 597 = 2,320 lines (the largest share, because two of the
+three modules tell ONE story and are explained together).
+
+YOUR OPENING LINE:
+  "I am presenting the two modules about detection and control. Alerts is where a
+   suspicious event is reviewed and dealt with, and Settings configures how
+   detection behaves."
+
+MODULE 1 - ALERTS (about 3 minutes - this is the most impressive demo)
+  WHAT TO SAY:
+    - An alert is a suspicious trading event. Each has a risk score from 0-100.
+    - The score maps into four severity bands, and the band decides the colour.
+    - The screen is split: the queue on the left, the evidence on the right.
+    - The three tabs are Detail, Evidence and History.
+
+  WHAT TO DEMO (this is the best sequence in the whole presentation):
+    1. Point at the colour-coded Risk column - red 92, amber 83, purple 45.
+    2. Point at the counters: NEW / UNDER REVIEW / CLOSED.
+    3. CLICK A ROW. The detail pane fills with the evidence package.
+    4. Click "Mark Reviewed". WATCH THE COUNTERS CHANGE - the NEW count drops and
+       UNDER REVIEW rises, and the status text changes colour.
+       Say: "the alert moved through the workflow - NEW to UNDER REVIEW."
+    5. Click "Escalate" - the risk score increases and it is capped at 100.
+    6. Use the Type/Status/Severity filters and show the table reducing.
+    7. Right-click a row to show the workflow popup menu.
+    8. Click "Export Queue" to show the CSV preview.
+
+  YOUR COMPONENTS TO NAME (14 + custom classes):
+    JPanel, JLabel, JButton (x4), JComboBox (x3), JTextField, JTable,
+    JScrollPane, JSplitPane, JTabbedPane, JTextArea (x3), JPopupMenu, JMenuItem,
+    JOptionPane, plus TWO CUSTOM-PAINTED classes and TWO CUSTOM CELL RENDERERS.
+
+  THE CODE DETAILS THAT EARN MARKS:
+    a) "We look up the selected alert by its ID, not by its row number. Rows
+        reorder when a new alert arrives at the top, so row 3 one second ago is a
+        different alert now. The ID is stable."
+    b) "A cell renderer is not a component per cell - it is a rubber stamp the
+        JTable reuses to paint each cell. We only create one per column."
+    c) "We check if (!isSelected) before setting a colour, otherwise our colour
+        would hide the row selection highlight."
+
+MODULE 2 - SETTINGS (about 2.5 minutes)
+  WHAT TO SAY:
+    - Preferences are organised as a tree on the left and a form on the right.
+    - The tree drives a CardLayout - clicking a category swaps the whole form.
+    - CRITICALLY: these settings are not decorative. Two of them change the
+      running application immediately.
+
+  WHAT TO DEMO (the strongest thing you can show):
+    1. Click through the tree categories. The form on the right changes.
+    2. Point at the colour swatches - click one and the JColorChooser opens.
+    3. Change the "Table row height" spinner and point at the LIVE PREVIEW at the
+       bottom - the mock table rows grow. Say: "the preview is hand-drawn and
+       reads the controls directly, so you see the effect before applying."
+    4. THE BIG MOMENT: drag the Risk threshold slider to 75, press Apply.
+       Say: "that value went into the running surveillance engine. Alerts below
+       the threshold will now be filtered out. This is not a form that stores
+       numbers - it changes behaviour."
+    5. Change the Refresh interval and point at the Market Data tab speeding up.
+
+  YOUR COMPONENTS TO NAME (18):
+    JPanel, JLabel, JButton, JRadioButton, ButtonGroup, JCheckBox (x9),
+    JToggleButton, JComboBox (x4), JSpinner (x5), JSlider, JTextField (x2),
+    JTree, JScrollPane, JSplitPane, JColorChooser, JFileChooser, JOptionPane,
+    plus TWO custom-painted classes (the colour swatch and the live preview).
+
+  THE CODE DETAILS THAT EARN MARKS:
+    a) "A ButtonGroup is what makes radio buttons mutually exclusive. Without it
+        they behave like checkboxes - that is a classic Swing mistake."
+    b) "JTree is used because preferences are genuinely hierarchical: Appearance
+        contains Theme, Colours and Fonts."
+    c) Be ready for the limitation question. Say: "the light theme is recorded
+        but not applied to open windows, because the theme colours are static
+        constants. Applying it live would mean re-running the look and feel and
+        repainting every panel. We chose to tell the user that in a dialog rather
+        than pretend it worked."
+
+--------------------------------------------------------------------------------
+WHO PRESENTS THE RULE BUILDER (996 lines)
+--------------------------------------------------------------------------------
+  This is the one module still unassigned. It is the largest single module after
+  Settings and it contains the most input controls, so give it to whoever is
+  comfortable with forms - PRANAV is the natural choice, because the Rule Builder
+  is what will evaluate the market data he presents.
+
+  If Pranav takes it, the final split is:
+    PRANAV   Market Data + Charting & Analytics + Rule Builder   2,346 lines
+    SHIVIKA  Alerts + Settings + Surveillance                    2,320 lines
+    VISHAL   Dashboard + Audit Reports + Replay                  1,849 lines
+
+  RULE BUILDER - WHAT TO SAY:
+    "This builds a surveillance rule visually. A rule is a name, a set of
+     conditions joined by AND or OR, a severity, and an enabled flag. The
+     conditions are held in a table and the rule is saved into the same shared
+     data store the other modules read."
+
+  WHAT TO DEMO:
+    1. Point at the three SAVED RULES on the right - note one is disabled (NO).
+    2. Add a condition: pick "Order Size", ">", 5000, press "Add Condition".
+       It appears in the conditions table with a number.
+    3. Add a second condition: "Order Lifetime (ms)", "<", 500.
+    4. Point at the RULE DEFINITION preview updating as you work, and at the
+       EVALUATION SUMMARY explaining AND versus OR.
+    5. Switch from AND to OR and watch the summary change its explanation.
+    6. Type a rule name, press "Validate" - it reports any problems.
+    7. Press "Save Rule" - a confirmation lists the rule id and condition count,
+       and the new rule appears in the table.
+    8. Double-click the new rule to load it back into the editor.
+    9. Press "Export" to show the CSV preview of all rules.
+
+  COMPONENTS (18): JTextField, JComboBox (x3), JSpinner (x2), JRadioButton (x2),
+    ButtonGroup, JCheckBox (x2), JToggleButton, JTable (x2), JTextArea (x2),
+    JButton (x8), JPopupMenu, JMenuItem, JSplitPane, JScrollPane, JOptionPane.
+
+  THE CODE DETAILS THAT EARN MARKS:
+    a) "The AND/OR choice is radio buttons in a ButtonGroup, because a rule uses
+        exactly one of them - checkboxes would allow an impossible state."
+    b) "The condition logic is explained live: AND needs every condition true so
+        it is precise but matches rarely; OR matches if any is true so it catches
+        more but produces more false positives. The panel says that in words."
+    c) "The 'between' operator enables a second value box. We disable it for all
+        the other operators so the user cannot enter a value that would be
+        ignored."
+
+  LIKELY QUESTIONS FOR YOU:
+    Q: Does the rule actually run?
+    A: Not yet - this build stores and manages rules. The evaluation engine is
+       the next step and it plugs into SurveillanceService, where a rule would
+       be tested against each market snapshot.
+    Q: Why is a condition a separate class?
+    A: A condition is meaningless on its own, so RuleCondition is nested inside
+       SurveillanceRule. That keeps the two concepts together and stops the model
+       package filling with tiny classes.
+    Q: How is a rule stored?
+    A: As an object in DataStore, the same shared store that holds alerts and
+       reports. There is one source of truth for the whole application.
+
+  LIKELY QUESTIONS FOR YOU:
+    Q: Where does the risk score come from?
+    A: SurveillanceService generates it - a random value between 25 and 94 in the
+       demo. Alert.getSeverity() maps that number into the four bands, and that
+       method is in the model so every screen uses the same boundaries.
+    Q: Why is the severity mapping in the model and not the panel?
+    A: Because the Alerts panel colours by it, Settings filters by it, and the
+       severity chart counts by it. If it lived in a panel, the other two would
+       have to duplicate the rule and they could disagree.
+    Q: How does the tree change the form?
+    A: The right side is a CardLayout, which shows one component at a time by
+       name. Selecting a tree category calls show(cardHolder, categoryName).
+
+--------------------------------------------------------------------------------
+SHIVIKA - Surveillance (your third module)
+--------------------------------------------------------------------------------
+MERIT: 597 lines.
+
+YOUR OPENING LINE:
+  "This is the engine control room. Everything the Alerts module detects comes
+   from here, and every control on this screen changes real behaviour."
+
+WHAT TO SAY:
+  - Surveillance subscribes to the market feed, so it runs on the same clock.
+  - Each tick it scans the market and decides whether something is suspicious.
+  - The sensitivity slider changes how often it detects. The risk threshold
+    throws away anything not serious enough.
+
+WHAT TO DEMO (this is a strong live demo - let it run):
+  1. Point at "Events Scanned" climbing in real time. Say: "the engine is
+     reading the market right now."
+  2. Show the ACTIVITY LOG filling with lines like
+     "23:21:57  ALERT ALR-0009  INTC  risk 56 (MEDIUM)  type Spoofing".
+     Say: "every detection is logged here as it happens."
+  3. DRAG THE SENSITIVITY SLIDER from 60 to 95. Detections speed up visibly.
+     Say: "higher sensitivity means a higher chance of detection per tick -
+     from 19% to 27%."
+  4. Raise the Risk threshold to 80 and press nothing - it applies immediately.
+     Say: "now anything below 80 is discarded, and the 'Below Threshold' counter
+     proves they were found but filtered, not missed."
+  5. Press "Stop Monitoring" - the status turns amber and the alerts stop.
+     Press "Start Monitoring" - they resume.
+  6. Press "Open Alerts Queue" - it jumps to the Alerts module. Point out that
+     the modules navigate to each other.
+
+COMPONENTS (16): JToggleButton, JComboBox (x2), JSlider, JSpinner (x2),
+  JButton (x4), JCheckBox (x3), JList, JProgressBar (x3), JTable, JScrollPane,
+  JSplitPane, JTextArea, JLabel, JPanel.
+
+THE CODE DETAILS THAT EARN MARKS:
+  a) "This class implements MarketDataService.MarketListener AND
+      SurveillanceService.MonitoringListener, so it hears about both market ticks
+      and its own state changes. It is an observer of two things."
+  b) "The probability per tick is 4 + sensitivity/4. At sensitivity 60 that is a
+      19% chance. That is why the slider visibly changes behaviour."
+  c) "The activity log is a JList with a DefaultListModel and we insert at index
+      0 so the newest entry is always on top, then trim to 120 entries so the
+      list cannot grow without limit."
+
+LIKELY QUESTIONS FOR YOU:
+  Q: Is the detection real?
+  A: No - it is a probability per tick, not a real spoofing algorithm. What is
+     real is the control flow: scan, score, compare against the threshold,
+     filter, alert. A real detection would plug into createAlert().
+  Q: Why does the risk threshold have an immediate effect?
+  A: Because the slider writes straight into the surveillance service, not into
+     a form that needs saving. The service compares every new risk score against
+     it before deciding to raise an alert.
+
+--------------------------------------------------------------------------------
+VISHAL - Dashboard  +  Audit Reports  +  Replay
+--------------------------------------------------------------------------------
+MERIT: 547 + 676 + 626 = 1,849 lines across three modules - the simplest set to
+explain, which is exactly why you have three.
+
+YOUR OPENING LINE (you go FIRST - the Dashboard is the overview everyone needs):
+  "I am opening the presentation with the Dashboard, which is the overview of the
+   whole system, and then I will show the two modules about recording and going
+   back over history."
+
+YOUR ADVANTAGE: none of your three modules has any custom painting, and only
+Audit Reports has a custom cell renderer. Everything you present uses standard
+Swing components in the normal way. You can be completely confident.
+
+--------------------------------------------------------------------------------
+VISHAL - MODULE 1: Dashboard (about 2 minutes - OPEN WITH THIS)
+--------------------------------------------------------------------------------
+WHAT TO SAY:
+  - This is the screen a supervisor opens first. It answers four questions at a
+    glance: is the system up, what is the market doing, what has been detected,
+    and what should I do next.
+  - Eight KPI tiles across the top, the latest suspicious events in the middle,
+    system health and quick actions on the left, market statistics on the right.
+
+WHAT TO DEMO:
+  1. Point at the four status blocks: System / Market Feed / Market Session /
+     Surveillance - all showing green.
+  2. Point at the KPI tiles and say the numbers are LIVE - "Orders Processed",
+     "Feed Ticks" and "Average Risk" change as the feed runs.
+  3. Point at "Latest suspicious events" - newest at the top, colour coded by
+     severity: CRITICAL red, HIGH amber, MEDIUM purple, LOW green.
+  4. CLICK "Open Alerts queue" in Quick actions. It jumps to the Alerts module.
+     Say: "the dashboard is a launch pad, not just a report."
+  5. Click "Open Market Data" to show navigation again.
+  6. Point at the System health progress bars.
+  7. Point at the top bar: "Ticks:", "FEED RUNNING", "MONITORING ON",
+     "6 OPEN ALERTS" and the live clock. Say: "that status bar is on every
+     screen because it belongs to the main frame, not to a module."
+
+COMPONENTS (18): JPanel, JLabel (many), JButton (x9), JToggleButton (x2),
+  JCheckBox, JTable (x2), JProgressBar (x4), JScrollPane, JOptionPane, JPopupMenu
+  (via the frame), Box/BoxLayout.
+
+THE CODE DETAIL THAT EARNS MARKS:
+  "The Dashboard does not own any data. It asks MarketDataService, DataStore and
+   SurveillanceService for their current numbers and displays them. That is why
+   it can never show figures that disagree with the other screens."
+
+LIKELY QUESTIONS:
+  Q: Where do the Dashboard's numbers come from?
+  A: Straight from the shared services - the same instances every other module
+     uses. The Dashboard holds no state of its own except the auto-refresh
+     checkbox.
+  Q: How does the dashboard update?
+  A: It implements MarketDataService.MarketListener, so refresh() runs on every
+     market tick, unless the "Auto-refresh" box is unticked.
+
+--------------------------------------------------------------------------------
+VISHAL - MODULE 2: Audit Reports (about 2.5 minutes)
+--------------------------------------------------------------------------------
+MERIT: 676 lines.
+
+AUDIT REPORTS - detail
+  WHAT TO SAY:
+    - This module generates audit reports and keeps them in a table.
+    - The table shows Report ID, Type, Date, Status, Alert Count and Period.
+    - The right-hand pane previews the report content.
+
+  WHAT TO DEMO:
+    1. Point at the pre-loaded reports in the table - different types and statuses.
+    2. Click "Preview" - the configuration summary appears on the right.
+    3. Choose a report type, then click "Generate Report". A confirmation dialog
+       appears describing exactly what will be created - press OK.
+    4. The new report appears AT THE TOP of the table.
+    5. Click "View" - a full MODAL dialog opens with the formatted report.
+       Say: "this is a JDialog set to APPLICATION_MODAL, so you must close it
+       before you can use the main window again."
+    6. Click "Export" - show the format chooser, then the JFileChooser.
+       Say honestly: "the export is simulated - the dialog flow and the file
+       chooser are real, but we do not write bytes to disk in this build."
+    7. Double-click a row - it opens the same dialog. Right-click for the menu.
+    8. Delete a report to show the confirmation.
+
+  YOUR COMPONENTS TO NAME (16):
+    JPanel, JLabel, JButton, JComboBox (x2), JTextField (x2),
+    JFormattedTextField, JTable, JScrollPane, JSplitPane, JTextArea, JDialog,
+    JFileChooser, JOptionPane, JPopupMenu, JMenuItem.
+
+  THE CODE DETAILS THAT EARN MARKS:
+    a) "The date field is a JFormattedTextField with a date format attached. That
+        means the yyyy-MM-dd pattern is enforced by the component itself - the
+        user cannot type 'banana'." (Rehearse this - it shows you know why you
+        chose a specific component.)
+    b) "We check the return value of every dialog: if the user cancels,
+        showConfirmDialog returns something other than OK_OPTION and we return
+        early. Forgetting this is how applications crash on a cancelled dialog."
+    c) A BUG STORY YOU CAN TELL - this is very strong:
+       "We had a bug where deleting a report made the row vanish and then it
+        reappeared on the next refresh. The cause was that getReports() returns a
+        copy of the list, so removing from it changed nothing. We fixed it by
+        adding a deleteReport() method to the service. The lesson is never to
+        hand out your internal collection."
+
+MODULE 3: Replay (about 2.5 minutes)
+  WHAT TO SAY:
+    - This module replays historical market data. The real replay engine is a
+      later task, so it drives a simulated event stream behind genuine controls.
+    - It has its own timer, separate from the market clock, because replaying
+      history is a different activity from watching the live feed.
+
+  WHAT TO DEMO (this one is VISUALLY satisfying - use it well):
+    1. Show the empty path field and the sample files.
+    2. Click "Browse..." - the real JFileChooser opens with a file filter.
+       Cancel it, then use "Use selected sample" instead.
+    3. Click "Load File" - the event log reports the file details.
+    4. Push the speed slider to maximum, then click "Start".
+    5. WATCH the progress bar, the event counter climbing, the throughput in
+       events per second and the SIMULATED CLOCK running from 09:30.
+       Say: "the clock starts at the 09:30 market open and advances with the
+       replay - that is calculated from the events processed."
+    6. Click "Pause" - everything stops and the status turns amber.
+    7. Click "Stop" - it offers to reset the position.
+    8. Tick "Verbose log" and start again to show individual events scrolling.
+    9. Show the Loop checkbox and the two mode radio buttons.
+
+  YOUR COMPONENTS TO NAME (18 - the joint highest count in the project):
+    JPanel, JLabel, JButton (x6), JTextField, JComboBox (x2), JList,
+    JRadioButton (x2), ButtonGroup, JCheckBox (x2), JToggleButton, JSlider,
+    JSpinner, JProgressBar, JTextArea, JScrollPane, JFileChooser, JOptionPane.
+
+  THE CODE DETAILS THAT EARN MARKS:
+    a) "The two replay modes are radio buttons inside a ButtonGroup, because they
+        are mutually exclusive - you cannot replay event-by-event and continuously
+        at the same time. Checkboxes would have been wrong."
+    b) "The speed slider maps onto standard presets - 1x, 5x, 10x, 50x, 100x, 200x.
+        A slider showing '37x' would look thoughtless."
+    c) "We only write to the event log every 5000 events, or every event in
+        Verbose mode. Appending 250,000 lines to a text area would consume huge
+        memory and lock the interface."
+    d) "The simulated clock is integer arithmetic: milliseconds divided by
+        3600000 gives hours, then % 24 wraps it into a day."
+
+  LIKELY QUESTIONS FOR YOU:
+    Q: Is the replay reading a real file?
+    A: No - the event stream is simulated. The controls, the file chooser, the
+       progress and the clock are real. Decoding real ITCH binary is a later
+       task and would only replace the method that produces the events.
+    Q: Why does Replay have its own timer when the market has one?
+    A: They are different activities. Replay must be able to run, pause and
+       change speed independently of the live feed. The market timer would keep
+       ticking while replaying.
+    Q: What is a ButtonGroup for?
+    A: It links radio buttons so selecting one deselects the others. Without it
+       they would all stay selected, which would be wrong.
+
+
+################################################################################
+# PART 3 - RUNNING ORDER AND TIMING (about 16 minutes)
+################################################################################
+
+  MIN   SPEAKER   MODULE                    THE ONE THING TO LAND
+  ---   --------  ------------------------  ------------------------------------
+  0-1   ALL       Introduction              One sentence: "Ten modules in one
+                                              Swing application, one shared
+                                              market engine, no external
+                                              libraries." Say the module count.
+  1-3   VISHAL    Dashboard                 The overview. Click a Quick action
+                                              button and let it navigate.
+  3-6   PRANAV    Market Data               "The feed is live right now." Type
+                                              "nv" in the search box to filter.
+  6-8   PRANAV    Charting & Analytics      Hover the chart for the crosshair.
+  8-11  SHIVIKA   Surveillance              Let the activity log fill, then push
+                                              the sensitivity slider up.
+  11-14 SHIVIKA   Alerts                    Click a row, Mark Reviewed, watch
+                                              the counters change. THE PEAK.
+  14-15 SHIVIKA   Settings                  Risk threshold to 75, press Apply.
+  15-16 PRANAV    Rule Builder              Add a condition, switch AND to OR,
+                                              save the rule.
+  16-18 VISHAL    Audit Reports             Generate a report, then View it.
+  18-20 VISHAL    Replay                    Start the replay, let the progress
+                                              bar visibly run.
+  20-21 PRANAV    Order Book                Place an order, wait for it to FILL.
+  21-22 ALL       Close                     "One timer, one source of truth,
+                                              all ten modules, standard Java
+                                              Swing only."
+
+  IF YOU RUN SHORT ON TIME, cut in this order: Rule Builder first (it is the most
+  self-contained), then Order Book, then Replay. Never cut Alerts or Surveillance
+  - they are the two modules that show real behaviour changing live.
+
+  PRESENTATION RULES FOR ALL THREE:
+    - Say whose module is next as you switch. It shows the split was planned.
+    - KEEP THE APPLICATION RUNNING while you talk. A frozen screen looks broken;
+      a moving one proves the system is alive.
+    - The status bar is visible on every screen - use it. Point at "Ticks",
+      "FEED RUNNING", "MONITORING ON" and the open alert count to prove the
+      application is live rather than a mock-up.
+    - If a demo misbehaves, say "let me show you the code instead" and move on
+      calmly. Never debug live in front of the examiner.
+    - Do not read from the screen. Know your two talking points per module.
+
+PART 4 - FINAL ASSIGNMENT SUMMARY
+################################################################################
+
+  This is the split to write on the board if you are asked "who did what":
+
+    PRANAV   Market Data (499) + Charting & Analytics (851)
+             + Rule Builder (996)
+                                                  = 2,346 lines, 3 modules
+
+    SHIVIKA  Alerts (710) + Settings (1,013) + Surveillance (597)
+                                                  = 2,320 lines, 3 modules
+
+    VISHAL   Dashboard (547) + Audit Reports (676) + Replay (626)
+                                                  = 1,849 lines, 3 modules
+
+  Order Book (718 lines) is the tenth module. It is the natural partner to
+  Market Data, so give it to PRANAV as a fourth module if he is comfortable -
+  otherwise it can be presented by whoever wrote it.
+
+    WITH ORDER BOOK:  PRANAV 3,064 | SHIVIKA 2,320 | VISHAL 1,849
+
+  TOTAL: 7,233 lines of module code across the ten screens, plus the shared
+  shell (MainFrame, 585 lines). The whole src/ folder is 10,715 lines in
+  27 files, including the model, service and util layers.
+
+  Be ready to say WHY the numbers are uneven: Vishal has the simplest modules, so
+  he carries a similar amount of CODE but less of the hardest WORK. If your sir
+  asks, that is the honest answer and it shows you distributed deliberately.
+
+################################################################################
+PART 5 - SHARED ANSWERS: ALL THREE OF YOU MUST KNOW THESE
+################################################################################
+
+  These are architecture questions. Any of you may be asked any of them. If you
+  cannot answer an architecture question about your own project, it looks bad.
+
+  Q: What is the architecture?
+  A: Four layers - gui, service, model, util. Dependencies point one way only:
+     panels use services, services use models, models use nothing. That is why
+     panels contain no business logic and the code is easy to explain.
+
+  Q: What happens in one market tick?
+  A: A javax.swing.Timer fires on the Event Dispatch Thread and calls tick().
+     It moves every price, updates the quotes and volumes, matches waiting
+     orders, cancels stale ones, then calls onMarketUpdate on every listener. The
+     Market Data panel refreshes, SurveillanceService may raise an alert, and
+     AnalyticsService appends to its history. All on one thread, in order.
+
+  Q: Why javax.swing.Timer and not a Thread?
+  A: Swing is not thread-safe - only the Event Dispatch Thread may touch
+     components. Timer fires on the EDT, so every panel can update directly with
+     no locks and no invokeLater. A background thread would have risked random
+     GUI corruption.
+
+  Q: Why is there only one timer?
+  A: Because there is one market. If each panel had its own clock, two screens
+     could show different prices at the same moment. One clock means one source
+     of truth. (Replay is the deliberate exception - it replays history, which is
+     a separate activity.)
+
+  Q: What design pattern did you use?
+  A: The Observer pattern. MarketDataService defines a MarketListener interface,
+     and panels and services register themselves to be notified on every tick.
+
+  Q: Where is the business logic?
+  A: Entirely in service/. The panels only build components and react to events.
+
+  Q: How would you add a database?
+  A: Only DataStore and SettingsStore would change. The panels already talk to
+     those classes rather than to files, so no GUI code changes.
+
+  Q: How did you test it?
+  A: Three ways. A headless smoke test that builds all six panels and runs the
+     clock for three seconds and fails on any exception. A pre-submission checker
+     that validates every file. And a rendering tool that paints each module to
+     an image. Those tools found four real bugs that reading the code had missed.
+
+  Q: What were your bugs? (A GREAT question - volunteer one, it shows maturity)
+  A: Four. (1) Every table was empty because the search fields were seeded with
+     their placeholder text as real text, so the filter searched for the words
+     "Search symbol or company". (2) The Settings tree was squeezed to 20 pixels
+     because a form demanded a 1528-pixel minimum inside a 1448-pixel pane.
+     (3) The Alerts filter bar clipped its own Search and Reset buttons.
+     (4) Deleted reports reappeared because we were removing from a copy of the
+     list. Cite the one about your own module if you can.
+
+  Q: Did you use any external library?
+  A: No. Standard Java and Swing only - no chart library, no database driver.
+     The three charts are drawn with Graphics2D.
+
+  Q: Which is your favourite part and why?
+  A: Have a REAL answer ready. Pranav: the hover crosshair on the chart.
+     Shivika: the risk threshold actually filtering live alerts.
+     Vishal: the JFormattedTextField enforcing the date format.
+
+
+################################################################################
+# PART 6 - QUICK REFERENCE CARD (print this and hold it)
+################################################################################
+
+  VISHAL   - opens the presentation
+    Dashboard (547)      JTable x2 JProgressBar x4 JToggleButton x2 JButton x9
+                         DEMO: click "Open Alerts queue" in Quick actions
+    Audit Reports (676)  JFormattedTextField JDialog JFileChooser JTable
+                         DEMO: Generate Report, then View the modal dialog
+    Replay (626)         JProgressBar JSlider ButtonGroup JRadioButton + Timer
+                         DEMO: Load File, Start, let the progress bar run
+    GOLD LINE: "none of my three modules has any custom painting - they are
+                standard Swing components used the normal way"
+
+  PRANAV
+    Market Data (499)    JTable JTextField JComboBox JToggleButton JList
+                         JPopupMenu
+                         DEMO: type "nv" in search; press LIVE to pause
+    Charting & Analytics (851)  JSlider JProgressBar JCheckBox + Graphics2D
+                         DEMO: hover the chart for the crosshair
+    Rule Builder (996)   JRadioButton ButtonGroup JComboBox JSpinner x2 JTable x2
+                         DEMO: Add Condition, switch AND to OR, Save Rule
+    GOLD LINE: "screen Y is inverted: y = top + height * (max - value) / range"
+
+  SHIVIKA
+    Surveillance (597)   JSlider JToggleButton JList JProgressBar x3 JTable
+                         DEMO: push the sensitivity slider, watch detections
+    Alerts (710)         JSplitPane JTabbedPane + 2 custom renderers + 1 chart
+                         DEMO: click a row, Mark Reviewed, counters change
+    Settings (1,013)     JTree JColorChooser JSlider + ButtonGroup + live preview
+                         DEMO: risk threshold to 75, press Apply
+    GOLD LINE: "we select the alert by ID, not by row number, because rows move"
+
+  ALL THREE MUST KNOW:
+    gui -> service -> model -> util, dependencies point one way only
+    One javax.swing.Timer in MarketDataService drives the whole application
+    Observer pattern through the MarketListener interface
+    Timer fires on the Event Dispatch Thread - that is why the panels are safe
+    No database, no external library, Graphics2D for the charts
+    We found our bugs by running and rendering the app, not by reading the code
+    The status bar is on every screen because it belongs to MainFrame
+
+################################################################################
+# END
+################################################################################
