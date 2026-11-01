@@ -42,6 +42,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import service.MarketDataService;
+import service.PredictorService;
 import service.SurveillanceService;
 import util.DarkTheme;
 import util.DemoData;
@@ -54,9 +55,11 @@ public class SettingsPanel extends JPanel {
     private static final String CARD_ALERTS = "Alerts";
     private static final String CARD_NOTIFICATIONS = "Notifications";
     private static final String CARD_ADVANCED = "Advanced";
+    private static final String CARD_PREDICTOR = "Predictor & ML";
 
     private final MarketDataService marketData;
     private final SurveillanceService surveillance;
+    private final PredictorService predictor;
 
     private final JPanel cardHolder = new JPanel(new java.awt.CardLayout());
     private final JTree settingsTree;
@@ -118,13 +121,27 @@ public class SettingsPanel extends JPanel {
     private final JComboBox<String> databaseBox = new JComboBox<>(
             new String[] { "None (demo data only)", "Embedded H2", "PostgreSQL", "Oracle" });
 
+    private final JComboBox<String> predictorAlgoBox = new JComboBox<>(model.PredictorParameters.ALGORITHMS);
+    private final JSpinner predictorWindowSpinner = DarkTheme.spinner(10, 1000, 10, 60);
+    private final JSpinner predictorAlphaSpinner = DarkTheme.doubleSpinner(0.01, 1.0, 0.05, 0.20);
+    private final JSpinner predictorZScoreSpinner = DarkTheme.doubleSpinner(1.0, 5.0, 0.5, 2.5);
+    private final JSpinner largeDatasetCapacitySpinner = DarkTheme.spinner(1000, 500000, 5000, 50000);
+    private final JSpinner volumeWeightSpinner = DarkTheme.doubleSpinner(0.0, 1.0, 0.05, 0.35);
+    private final JSpinner cancelWeightSpinner = DarkTheme.doubleSpinner(0.0, 1.0, 0.05, 0.40);
+    private final JSpinner volatilityWeightSpinner = DarkTheme.doubleSpinner(0.0, 1.0, 0.05, 0.25);
+
     public SettingsPanel() {
-        this(new MarketDataService(), null);
+        this(new MarketDataService(), null, null);
     }
 
     public SettingsPanel(MarketDataService marketData, SurveillanceService surveillance) {
+        this(marketData, surveillance, null);
+    }
+
+    public SettingsPanel(MarketDataService marketData, SurveillanceService surveillance, PredictorService predictor) {
         this.marketData = marketData;
         this.surveillance = surveillance;
+        this.predictor = predictor;
 
         setLayout(new BorderLayout(0, 10));
         setBackground(DarkTheme.BG);
@@ -167,11 +184,16 @@ public class SettingsPanel extends JPanel {
         advanced.add(new DefaultMutableTreeNode("Logging"));
         advanced.add(new DefaultMutableTreeNode("About"));
 
+        DefaultMutableTreeNode predictorNode = new DefaultMutableTreeNode(CARD_PREDICTOR);
+        predictorNode.add(new DefaultMutableTreeNode("Hyperparameters"));
+        predictorNode.add(new DefaultMutableTreeNode("Large Dataset Tuning"));
+
         root.add(appearance);
         root.add(market);
         root.add(alerts);
         root.add(notifications);
         root.add(advanced);
+        root.add(predictorNode);
 
         JTree tree = new JTree(new DefaultTreeModel(root));
         tree.setBackground(DarkTheme.SURFACE_ALT);
@@ -235,11 +257,57 @@ public class SettingsPanel extends JPanel {
         cardHolder.add(buildAlertsCard(), CARD_ALERTS);
         cardHolder.add(buildNotificationsCard(), CARD_NOTIFICATIONS);
         cardHolder.add(buildAdvancedCard(), CARD_ADVANCED);
+        cardHolder.add(buildPredictorSettingsCard(), CARD_PREDICTOR);
 
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBackground(DarkTheme.BG);
         wrapper.add(cardHolder, BorderLayout.CENTER);
         return wrapper;
+    }
+
+    private JPanel buildPredictorSettingsCard() {
+        JPanel card = DarkTheme.card("Predictor & Large Dataset Parameters", new BorderLayout(0, 10));
+
+        JPanel form = new JPanel();
+        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
+        form.setOpaque(false);
+
+        JPanel row1 = new JPanel(new GridLayout(1, 2, 10, 0));
+        row1.setOpaque(false);
+        row1.add(titledChoice("Model algorithm", predictorAlgoBox));
+        row1.add(titledChoice("Lookback window (ticks)", predictorWindowSpinner));
+        form.add(row1);
+        form.add(Box.createVerticalStrut(10));
+
+        JPanel row2 = new JPanel(new GridLayout(1, 2, 10, 0));
+        row2.setOpaque(false);
+        row2.add(titledChoice("Learning rate (alpha)", predictorAlphaSpinner));
+        row2.add(titledChoice("Anomaly Z-Score cutoff", predictorZScoreSpinner));
+        form.add(row2);
+        form.add(Box.createVerticalStrut(10));
+
+        JPanel row3 = new JPanel(new GridLayout(1, 2, 10, 0));
+        row3.setOpaque(false);
+        row3.add(titledChoice("Large dataset buffer capacity", largeDatasetCapacitySpinner));
+        row3.add(titledChoice("Volume feature weight", volumeWeightSpinner));
+        form.add(row3);
+        form.add(Box.createVerticalStrut(10));
+
+        JPanel row4 = new JPanel(new GridLayout(1, 2, 10, 0));
+        row4.setOpaque(false);
+        row4.add(titledChoice("Cancellation ratio weight", cancelWeightSpinner));
+        row4.add(titledChoice("Volatility expansion weight", volatilityWeightSpinner));
+        form.add(row4);
+
+        card.add(form, BorderLayout.NORTH);
+
+        JPanel infoCard = DarkTheme.card("Model Architecture Information", new GridLayout(0, 1, 0, 4));
+        infoCard.add(DarkTheme.muted("Predictor engine: Ensemble Statistical & Dynamic Trend Scoring"));
+        infoCard.add(DarkTheme.muted("Streaming buffer: High-capacity O(1) circular ring buffer"));
+        infoCard.add(DarkTheme.muted("Evaluation metrics: Live Accuracy %, Precision, Recall, F1, MAE"));
+        card.add(infoCard, BorderLayout.CENTER);
+
+        return card;
     }
 
     private JPanel buildAppearanceCard() {
@@ -640,6 +708,15 @@ public class SettingsPanel extends JPanel {
         logLevelBox.addActionListener(markChanged);
         databaseBox.addActionListener(markChanged);
 
+        predictorAlgoBox.addActionListener(markChanged);
+        predictorWindowSpinner.addChangeListener(e -> markChanged.actionPerformed(null));
+        predictorAlphaSpinner.addChangeListener(e -> markChanged.actionPerformed(null));
+        predictorZScoreSpinner.addChangeListener(e -> markChanged.actionPerformed(null));
+        largeDatasetCapacitySpinner.addChangeListener(e -> markChanged.actionPerformed(null));
+        volumeWeightSpinner.addChangeListener(e -> markChanged.actionPerformed(null));
+        cancelWeightSpinner.addChangeListener(e -> markChanged.actionPerformed(null));
+        volatilityWeightSpinner.addChangeListener(e -> markChanged.actionPerformed(null));
+
         accentSwatch.onClick(() -> previewPanel.repaint());
         alertSwatch.onClick(() -> previewPanel.repaint());
 
@@ -651,7 +728,8 @@ public class SettingsPanel extends JPanel {
                 || CARD_MARKET.equals(name)
                 || CARD_ALERTS.equals(name)
                 || CARD_NOTIFICATIONS.equals(name)
-                || CARD_ADVANCED.equals(name);
+                || CARD_ADVANCED.equals(name)
+                || CARD_PREDICTOR.equals(name);
     }
 
     private void selectTreeCategory(String category) {
@@ -733,6 +811,17 @@ public class SettingsPanel extends JPanel {
             surveillance.setRiskThreshold(SettingsStore.riskThreshold);
         }
 
+        if (predictor != null) {
+            predictor.getParameters().setAlgorithm(String.valueOf(predictorAlgoBox.getSelectedItem()));
+            predictor.getParameters().setLookbackWindow((Integer) predictorWindowSpinner.getValue());
+            predictor.getParameters().setLearningRateAlpha(((Number) predictorAlphaSpinner.getValue()).doubleValue());
+            predictor.getParameters().setAnomalyZScoreCutoff(((Number) predictorZScoreSpinner.getValue()).doubleValue());
+            predictor.getParameters().setBenchmarkDatasetSize((Integer) largeDatasetCapacitySpinner.getValue());
+            predictor.getParameters().setVolumeWeight(((Number) volumeWeightSpinner.getValue()).doubleValue());
+            predictor.getParameters().setCancellationWeight(((Number) cancelWeightSpinner.getValue()).doubleValue());
+            predictor.getParameters().setVolatilityWeight(((Number) volatilityWeightSpinner.getValue()).doubleValue());
+        }
+
         if ("Light".equals(SettingsStore.theme)) {
             setStatus("Settings applied (light theme selected)", DarkTheme.AMBER);
             JOptionPane.showMessageDialog(this,
@@ -787,6 +876,17 @@ public class SettingsPanel extends JPanel {
         retentionSpinner.setValue(SettingsStore.archiveRetentionDays);
         logLevelBox.setSelectedItem(SettingsStore.logLevel);
         exportPathField.setText(SettingsStore.exportPath);
+
+        if (predictor != null) {
+            predictorAlgoBox.setSelectedItem(predictor.getParameters().getAlgorithm());
+            predictorWindowSpinner.setValue(predictor.getParameters().getLookbackWindow());
+            predictorAlphaSpinner.setValue(predictor.getParameters().getLearningRateAlpha());
+            predictorZScoreSpinner.setValue(predictor.getParameters().getAnomalyZScoreCutoff());
+            largeDatasetCapacitySpinner.setValue(predictor.getParameters().getBenchmarkDatasetSize());
+            volumeWeightSpinner.setValue(predictor.getParameters().getVolumeWeight());
+            cancelWeightSpinner.setValue(predictor.getParameters().getCancellationWeight());
+            volatilityWeightSpinner.setValue(predictor.getParameters().getVolatilityWeight());
+        }
 
         updateFeedStatus();
         previewPanel.repaint();

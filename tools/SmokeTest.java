@@ -103,6 +103,20 @@ public class SmokeTest {
             check(appStore.getRuleCount() > 0, "rules recreated after reset");
         });
 
+        runAction("large dataset benchmark test", () -> {
+            service.PredictorService predictor = app.getPredictorService();
+            check(predictor != null, "predictor service is initialized");
+            model.PredictionResult pred = predictor.getPrediction("AAPL");
+            check(pred != null && pred.getAccuracyPercent() > 0.0, "predictor accuracy computed");
+            service.PredictorService.BenchmarkReport report = predictor.runLargeDatasetBenchmark(10000);
+            check(report.getTotalRecords() == 10000, "10k records benchmarked");
+            check(report.getAccuracyPercent() > 0.0, "benchmark accuracy calculated");
+            check(report.getThroughputPerSec() > 1000.0, "high-speed throughput verified");
+            model.PredictionResult sim = predictor.injectSimulatedAbuse("AAPL");
+            check("CRITICAL".equals(sim.getRiskLevel()), "simulated abuse sets critical risk");
+            check(sim.getAnomalyScore() > 3.0, "simulated abuse anomaly flagged");
+        });
+
         runOnEdt("shutdown", app::shutdown);
 
         System.out.println();

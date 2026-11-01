@@ -117,7 +117,8 @@ public final class DemoData {
             "Rule Effectiveness Report",
             "Trader Behaviour Report",
             "Order Lifecycle Audit",
-            "Regulatory Export (CAT)"
+            "Regulatory Export (CAT)",
+            "Predictor & Model Audit"
         };
     }
 }

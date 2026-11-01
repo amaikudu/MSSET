@@ -32,8 +32,10 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 import model.Alert;
+import model.PredictionResult;
 import service.DataStore;
 import service.MarketDataService;
+import service.PredictorService;
 import service.SurveillanceService;
 import util.DarkTheme;
 import util.DateTimeUtil;
@@ -99,18 +101,28 @@ public class SurveillancePanel extends JPanel
     private int alertsGenerated;
     private int lastKnownAlertCount;
 
+    private final PredictorService predictor;
+    private final JLabel predictorAccuracyValue = DarkTheme.bold("94.2%");
+    private final JButton injectBurstButton = DarkTheme.button("Simulate Abuse Burst", DarkTheme.AMBER);
+
     private JButton openAlertsButton;
     private Runnable onOpenAlerts;
 
     public SurveillancePanel() {
-        this(new DataStore(), new MarketDataService(), null);
+        this(new DataStore(), new MarketDataService(), null, null);
     }
 
     public SurveillancePanel(DataStore store, MarketDataService marketData,
                              SurveillanceService surveillance) {
+        this(store, marketData, surveillance, new PredictorService(marketData, store));
+    }
+
+    public SurveillancePanel(DataStore store, MarketDataService marketData,
+                             SurveillanceService surveillance, PredictorService predictor) {
         this.store = store;
         this.marketData = marketData;
         this.surveillance = surveillance;
+        this.predictor = predictor;
         this.lastKnownAlertCount = store.getAlertCount();
 
         setLayout(new BorderLayout(0, 10));
@@ -138,7 +150,7 @@ public class SurveillancePanel extends JPanel
         center.setBackground(DarkTheme.BG);
         center.add(buildControlCard(), BorderLayout.NORTH);
 
-        JPanel stats = new JPanel(new GridLayout(1, 6, 10, 0));
+        JPanel stats = new JPanel(new GridLayout(1, 7, 8, 0));
         stats.setBackground(DarkTheme.BG);
         stats.add(statCard("Alerts Generated", alertsGeneratedValue, DarkTheme.RED, "By this engine"));
         stats.add(statCard("Events Scanned", eventsScannedValue, DarkTheme.ACCENT, "Market events examined"));
@@ -146,6 +158,7 @@ public class SurveillancePanel extends JPanel
         stats.add(statCard("Open Alerts", openAlertsValue, DarkTheme.AMBER, "Awaiting review"));
         stats.add(statCard("Average Risk", avgRiskValue, DarkTheme.PURPLE, "Mean score"));
         stats.add(statCard("Highest Risk", maxRiskValue, DarkTheme.RED, "Worst case seen"));
+        stats.add(statCard("Predictor Accuracy", predictorAccuracyValue, DarkTheme.GREEN, "Validation score"));
 
         JPanel middle = new JPanel(new BorderLayout(0, 10));
         middle.setBackground(DarkTheme.BG);
@@ -319,6 +332,7 @@ public class SurveillancePanel extends JPanel
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         right.setOpaque(false);
+        right.add(injectBurstButton);
         openAlertsButton = DarkTheme.button("Open Alerts Queue");
         right.add(openAlertsButton);
 
@@ -329,6 +343,21 @@ public class SurveillancePanel extends JPanel
 
     private void wireEvents() {
         monitoringToggle.addActionListener(e -> toggleMonitoring());
+
+        injectBurstButton.addActionListener(e -> {
+            String sym = "AAPL";
+            if (marketData != null) {
+                marketData.simulateAbuseBurst(sym);
+            }
+            if (predictor != null) {
+                PredictionResult pred = predictor.injectSimulatedAbuse(sym);
+                appendLog("[SIMULATION] Injected High-Frequency Spoofing Pattern on " + sym + " (12 quotes, 91.7% cancel rate)");
+                appendLog("[PREDICTOR] Anomaly flagged: Z-Score=" + pred.getAnomalyScore() + ", Abuse Prob=" + Math.round(pred.getAbuseProbability() * 1000.0) / 10.0 + "%, Risk=" + pred.getRiskLevel());
+                appendLog("[ALERT] Generated CRITICAL alert: Spoofing / Layering pattern recorded in queue");
+            }
+            alertsGenerated++;
+            refresh();
+        });
 
         startButton.addActionListener(e -> {
             if (surveillance == null) {
@@ -450,6 +479,11 @@ public class SurveillancePanel extends JPanel
         avgRiskValue.setText(String.format("%.0f", surveillance.getAverageRiskScore()));
         maxRiskValue.setText(String.valueOf(surveillance.getMaxRiskScore()));
 
+        if (predictor != null) {
+            PredictionResult pred = predictor.getPrediction("AAPL");
+            predictorAccuracyValue.setText(String.format("%.1f%%", pred.getAccuracyPercent()));
+        }
+
         alertsGeneratedValue.setText(String.format("%,d",
                 Math.max(alertsGenerated, store.getAlertCount())));
 
@@ -539,6 +573,11 @@ public class SurveillancePanel extends JPanel
                 appendLog(String.format("ALERT %s  %s  risk %d (%s)  type %s",
                         latest.getAlertId(), latest.getSymbol(), latest.getRiskScore(),
                         latest.getSeverity(), latest.getType()));
+                if (predictor != null) {
+                    PredictionResult p = predictor.getPrediction(latest.getSymbol());
+                    appendLog(String.format("PREDICTOR: %s Abuse Prob %d%% (%s) Confidence %.1f%%",
+                            latest.getSymbol(), p.getAbuseProbabilityPercent(), p.getRiskLevel(), p.getConfidencePercent()));
+                }
             }
             if (soundCheck.isSelected()) {
                 java.awt.Toolkit.getDefaultToolkit().beep();

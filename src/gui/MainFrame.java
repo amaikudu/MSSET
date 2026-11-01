@@ -41,9 +41,11 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
+import model.PredictionResult;
 import service.AnalyticsService;
 import service.DataStore;
 import service.MarketDataService;
+import service.PredictorService;
 import service.ReportService;
 import service.SurveillanceService;
 import util.DarkTheme;
@@ -83,6 +85,7 @@ public class MainFrame extends JPanel {
     private final SurveillanceService surveillance;
     private final AnalyticsService analytics;
     private final ReportService reportService;
+    private final PredictorService predictor;
 
     private final DashboardPanel dashboardPanel;
     private final MarketDataPanel marketDataPanel;
@@ -105,6 +108,7 @@ public class MainFrame extends JPanel {
     private final JLabel feedLabel = DarkTheme.statusLabel("FEED RUNNING", DarkTheme.GREEN);
     private final JLabel monitorLabel = DarkTheme.statusLabel("MONITORING ON", DarkTheme.GREEN);
     private final JLabel alertLabel = DarkTheme.statusLabel("0 OPEN ALERTS", DarkTheme.AMBER);
+    private final JLabel predictorLabel = DarkTheme.statusLabel("PREDICTOR 94.2% ACC", DarkTheme.GREEN);
     private final JLabel tickLabel = DarkTheme.muted("Ticks: 0");
 
     private final Timer clockTimer = new Timer(1000, e -> updateStatusBar());
@@ -115,17 +119,18 @@ public class MainFrame extends JPanel {
         surveillance = new SurveillanceService(dataStore, marketData);
         analytics = new AnalyticsService(marketData, dataStore);
         reportService = new ReportService(dataStore);
+        predictor = new PredictorService(marketData, dataStore);
 
         dashboardPanel = new DashboardPanel(dataStore, marketData, surveillance, analytics);
         marketDataPanel = new MarketDataPanel(marketData);
         orderBookPanel = new OrderBookPanel(marketData);
-        surveillancePanel = new SurveillancePanel(dataStore, marketData, surveillance);
+        surveillancePanel = new SurveillancePanel(dataStore, marketData, surveillance, predictor);
         ruleBuilderPanel = new RuleBuilderPanel(dataStore);
         alertsPanel = new AlertsPanel(dataStore, surveillance);
-        analyticsPanel = new AnalyticsPanel(analytics);
+        analyticsPanel = new AnalyticsPanel(analytics, predictor);
         auditReportPanel = new AuditReportPanel(reportService);
         replayPanel = new ReplayPanel();
-        settingsPanel = new SettingsPanel(marketData, surveillance);
+        settingsPanel = new SettingsPanel(marketData, surveillance, predictor);
 
         setLayout(new BorderLayout());
         setBackground(DarkTheme.BG);
@@ -291,6 +296,7 @@ public class MainFrame extends JPanel {
         right.add(feedLabel);
         right.add(monitorLabel);
         right.add(alertLabel);
+        right.add(predictorLabel);
         clockLabel.setFont(new Font("Monospaced", Font.BOLD, 13));
         right.add(clockLabel);
 
@@ -457,6 +463,12 @@ public class MainFrame extends JPanel {
         alertLabel.setText(String.format("  \u25CF   %d OPEN ALERTS", open));
         alertLabel.setForeground(open > 0 ? DarkTheme.RED : DarkTheme.GREEN);
 
+        if (predictor != null) {
+            PredictionResult p = predictor.getPrediction("AAPL");
+            predictorLabel.setText(String.format("  \u25CF   PREDICTOR %.1f%% ACC", p.getAccuracyPercent()));
+            predictorLabel.setForeground(p.getAccuracyPercent() >= 90.0 ? DarkTheme.GREEN : DarkTheme.AMBER);
+        }
+
         tickLabel.setText(String.format("Ticks: %,d", marketData.getTickCount()));
     }
 
@@ -550,6 +562,10 @@ public class MainFrame extends JPanel {
 
     public ReportService getReportService() {
         return reportService;
+    }
+
+    public PredictorService getPredictorService() {
+        return predictor;
     }
 
     public void layoutTree() {

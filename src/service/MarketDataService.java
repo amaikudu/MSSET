@@ -177,6 +177,32 @@ public class MarketDataService {
         return false;
     }
 
+    public void simulateAbuseBurst(String symbol) {
+        if (symbol == null || !rows.containsKey(symbol)) {
+            symbol = "AAPL";
+        }
+        MarketRow row = rows.get(symbol);
+        double currentPrice = row != null ? row.getPrice() : 228.40;
+        List<LiveOrder> placed = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            double price = round2(currentPrice - 0.05 - (i * 0.02));
+            int size = 5000 + (i * 500);
+            placed.add(placeOrder(symbol, LiveOrder.SIDE_BUY, price, size));
+        }
+        for (int i = 0; i < placed.size() - 1; i++) {
+            cancelOrder(placed.get(i).getOrderId());
+        }
+        placeOrder(symbol, LiveOrder.SIDE_SELL, round2(currentPrice + 0.02), 10000);
+        if (row != null) {
+            row.setVolume(row.getVolume() + 55000);
+            row.setPrice(round2(currentPrice + 0.35));
+        }
+        List<MarketRow> snapshot = getRows();
+        for (MarketListener listener : listeners) {
+            listener.onMarketUpdate(snapshot);
+        }
+    }
+
     public List<LiveOrder> getOrders() {
         List<LiveOrder> copy = new ArrayList<>(orders);
         Collections.reverse(copy);

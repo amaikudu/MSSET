@@ -3,6 +3,7 @@ package service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -16,6 +17,7 @@ import model.MarketRow;
 public class AnalyticsService implements MarketDataService.MarketListener {
 
     public static final int MAX_HISTORY = 120;
+    public static final int DEFAULT_MAX_HISTORY = 120;
 
     public static final String[] METRICS = {
         "Price (Last)",
@@ -28,8 +30,8 @@ public class AnalyticsService implements MarketDataService.MarketListener {
     private final MarketDataService marketData;
     private final DataStore store;
 
+    private int maxHistory = DEFAULT_MAX_HISTORY;
     private final Map<String, List<PricePoint>> history = new LinkedHashMap<>();
-
     private final Map<String, List<Long>> volumeHistory = new LinkedHashMap<>();
 
     private final Random random = new Random(1234L);
@@ -41,8 +43,8 @@ public class AnalyticsService implements MarketDataService.MarketListener {
         this.store = store;
 
         for (MarketRow row : marketData.getRows()) {
-            List<PricePoint> prices = new ArrayList<>();
-            List<Long> volumes = new ArrayList<>();
+            List<PricePoint> prices = new LinkedList<>();
+            List<Long> volumes = new LinkedList<>();
             double price = row.getPrice();
             long volume = row.getVolume();
             long now = System.currentTimeMillis();
@@ -70,6 +72,43 @@ public class AnalyticsService implements MarketDataService.MarketListener {
         return store;
     }
 
+    public int getMaxHistory() {
+        return maxHistory;
+    }
+
+    public void setMaxHistory(int maxHistory) {
+        this.maxHistory = Math.max(30, maxHistory);
+    }
+
+    public void ingestBatchDataset(String symbol, double[] rawPrices, long[] rawVolumes) {
+        if (symbol == null || rawPrices == null || rawPrices.length == 0) {
+            return;
+        }
+        List<PricePoint> prices = history.get(symbol);
+        List<Long> volumes = volumeHistory.get(symbol);
+        if (prices == null) {
+            prices = new LinkedList<>();
+            history.put(symbol, prices);
+        }
+        if (volumes == null) {
+            volumes = new LinkedList<>();
+            volumeHistory.put(symbol, volumes);
+        }
+        long now = System.currentTimeMillis();
+        int len = rawPrices.length;
+        for (int i = 0; i < len; i++) {
+            prices.add(new PricePoint(now - (len - i) * 500L, rawPrices[i]));
+            long vol = (rawVolumes != null && i < rawVolumes.length) ? rawVolumes[i] : 50000L;
+            volumes.add(vol);
+            if (prices.size() > maxHistory) {
+                prices.remove(0);
+            }
+            if (volumes.size() > maxHistory) {
+                volumes.remove(0);
+            }
+        }
+    }
+
     @Override
     public void onMarketUpdate(List<MarketRow> rows) {
         long now = System.currentTimeMillis();
@@ -81,10 +120,10 @@ public class AnalyticsService implements MarketDataService.MarketListener {
             }
             prices.add(new PricePoint(now, row.getPrice()));
             volumes.add(row.getVolume());
-            if (prices.size() > MAX_HISTORY) {
+            if (prices.size() > maxHistory) {
                 prices.remove(0);
             }
-            if (volumes.size() > MAX_HISTORY) {
+            if (volumes.size() > maxHistory) {
                 volumes.remove(0);
             }
         }
