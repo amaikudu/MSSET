@@ -65,6 +65,9 @@ public final class DarkTheme {
 
     public static void install() {
 
+        System.setProperty("awt.useSystemAAFontSettings", "on");
+        System.setProperty("swing.aatext", "true");
+
         try {
             UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
         } catch (Exception ignored) {
@@ -274,9 +277,14 @@ public final class DarkTheme {
     }
 
     public static JLabel statusLabel(String text, Color color) {
-        JLabel l = new JLabel("  \u25CF   " + text);
-        l.setFont(FONT_BOLD);
+        JLabel l = new JLabel(" \u25CF  " + text + " ");
+        l.setFont(new Font("SansSerif", Font.BOLD, 11));
         l.setForeground(color);
+        l.setOpaque(true);
+        l.setBackground(new Color(color.getRed(), color.getGreen(), color.getBlue(), 28));
+        l.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(color.getRed(), color.getGreen(), color.getBlue(), 120), 1),
+                BorderFactory.createEmptyBorder(2, 6, 2, 6)));
         return l;
     }
 

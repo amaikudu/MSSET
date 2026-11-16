@@ -290,7 +290,14 @@ public class DashboardPanel extends JPanel implements MarketDataService.MarketLi
         card.add(analyticsButton);
         card.add(reportsButton);
         card.add(rulesButton);
-        card.add(new JLabel());
+        JButton burstButton = DarkTheme.button("Simulate Abuse Burst", DarkTheme.AMBER);
+        burstButton.addActionListener(e -> {
+            if (marketData != null) {
+                marketData.simulateAbuseBurst("AAPL");
+            }
+            refresh();
+        });
+        card.add(burstButton);
         return card;
     }
 

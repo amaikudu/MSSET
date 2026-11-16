@@ -229,11 +229,18 @@ public class MainFrame extends JPanel {
         sidebar.add(separator2);
         sidebar.add(Box.createVerticalStrut(8));
 
-        JLabel team = new JLabel("Team: Pranav, Shivika, Vishal");
+        JPanel footerBox = new JPanel(new GridLayout(2, 1, 0, 2));
+        footerBox.setOpaque(false);
+        footerBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel version = new JLabel("MSSET v2.0  \u2022  Final Review");
+        version.setFont(new Font("SansSerif", Font.BOLD, 10));
+        version.setForeground(DarkTheme.ACCENT);
+        JLabel team = new JLabel("Team: Pranav \u2022 Shivika \u2022 Vishal");
         team.setFont(DarkTheme.FONT_SMALL);
         team.setForeground(DarkTheme.TEXT_MUTED);
-        team.setAlignmentX(Component.LEFT_ALIGNMENT);
-        sidebar.add(team);
+        footerBox.add(version);
+        footerBox.add(team);
+        sidebar.add(footerBox);
 
         return sidebar;
     }
@@ -418,6 +425,11 @@ public class MainFrame extends JPanel {
             button.setBackground(selected ? DarkTheme.ACCENT : DarkTheme.SIDEBAR);
             button.setForeground(selected ? Color.WHITE : DarkTheme.TEXT);
             button.setFont(selected ? DarkTheme.FONT_BOLD : DarkTheme.FONT_BASE);
+            button.setBorder(selected
+                    ? BorderFactory.createCompoundBorder(
+                            BorderFactory.createMatteBorder(0, 3, 0, 0, Color.WHITE),
+                            BorderFactory.createEmptyBorder(8, 9, 8, 8))
+                    : BorderFactory.createEmptyBorder(8, 12, 8, 8));
         }
 
         for (String[] entry : MODULE_LIST) {
