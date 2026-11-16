@@ -79,7 +79,7 @@ def create_presentation():
     t_tf = t_box.text_frame
     t_tf.word_wrap = True
     tp = t_tf.paragraphs[0]
-    tp.text = "Market Surveillance Engine for\nElectronic Trading (MSSET)"
+    tp.text = "Market Surveillance Engine for\nElectronic Trading (MSEET)"
     tp.alignment = PP_ALIGN.CENTER
     tp.font.name = "Arial"
     tp.font.size = Pt(36)
@@ -891,9 +891,11 @@ def create_presentation():
     b_p12.font.color.rgb = SUCCESS_GREEN
 
     # Save Presentation
-    output_path = "/Users/pskp/.gemini/antigravity/scratch/MSSET/MSSET-Final-Review.pptx"
+    output_path = "/Users/pskp/.gemini/antigravity/scratch/MSSET/MSEET-Final-Review.pptx"
     prs.save(output_path)
-    print(f"Successfully generated {output_path}")
+    output_path_alt = "/Users/pskp/.gemini/antigravity/scratch/MSSET/MSSET-Final-Review.pptx"
+    prs.save(output_path_alt)
+    print(f"Successfully generated {output_path} and {output_path_alt}")
 
 if __name__ == "__main__":
     create_presentation()
