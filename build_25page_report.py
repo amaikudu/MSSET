@@ -4,7 +4,13 @@ Generates the calibrated academic Project Report Document (.docx)
 for MSEET (Market Surveillance Engine for Electronic Trading).
 
 Target Page Count: EXACTLY 25 PAGES.
-- Pages 1-6: Mandatory Preliminary Pages (Cover, Certificate, Declaration, Acknowledgements, Abstract, TOC)
+Page Order:
+- Page 1: Formal Cover Page
+- Page 2: Abstract & Keywords (placed immediately after 1st page as requested)
+- Page 3: Own Work Declaration Form (matching Image 3)
+- Page 4: Bonafide Certificate (matching Image 4)
+- Page 5: Acknowledgements (matching Image 5)
+- Page 6: Table of Contents & List of Tables / Figures
 - Pages 7-18: Technical Core Chapters (Introduction, Tech Stack, System Design, 10 Modules, Algorithms, Results, Governance, Status Matrix, Deployment & Conclusion, References)
 - Pages 19-25: Appendix Visual Evidence (14 Screenshots, exactly 2 per page across 7 pages)
 
@@ -178,7 +184,7 @@ def create_25page_report():
             if os.path.exists(img_path):
                 p = doc.add_paragraph()
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                p.paragraph_format.space_before = Pt(4)
+                p.paragraph_format.space_before = Pt(3)
                 p.paragraph_format.space_after = Pt(2)
                 p.paragraph_format.keep_with_next = True
                 run = p.add_run()
@@ -187,7 +193,7 @@ def create_25page_report():
                 cp = doc.add_paragraph()
                 cp.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 cp.paragraph_format.space_before = Pt(1)
-                cp.paragraph_format.space_after = Pt(6)
+                cp.paragraph_format.space_after = Pt(5)
                 c_run = cp.add_run(cap)
                 c_run.bold = True
                 c_run.italic = True
@@ -198,7 +204,7 @@ def create_25page_report():
     shots_dir = "/Users/pskp/.gemini/antigravity/scratch/MSSET/shots"
 
     # =========================================================================
-    # PAGE 1: FORMAL COVER PAGE (MANDATORY PAGE 1)
+    # PAGE 1: FORMAL COVER PAGE (MATCHING IMAGE 1 TEMPLATE)
     # =========================================================================
     add_p("MARKET SURVEILLANCE ENGINE FOR ELECTRONIC TRADING (MSEET)", 
           bold=True, size=15, align=WD_ALIGN_PARAGRAPH.CENTER, color=NAVY_RGB, space_before=8, space_after=14)
@@ -250,71 +256,53 @@ def create_25page_report():
     doc.add_page_break() # -> PAGE 2
 
     # =========================================================================
-    # PAGE 2: BONAFIDE CERTIFICATE (MANDATORY PAGE 2)
+    # PAGE 2: ABSTRACT & KEYWORDS (PLACED AFTER 1ST PAGE AS REQUESTED - IMAGE 2)
     # =========================================================================
-    logo_small = "/Users/pskp/.gemini/antigravity/scratch/MSSET/srm_logo_small_clean.png"
-    if os.path.exists(logo_small):
-        p_cert_logo = doc.add_paragraph()
-        p_cert_logo.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p_cert_logo.paragraph_format.space_after = Pt(4)
-        r_cl = p_cert_logo.add_run()
-        r_cl.add_picture(logo_small, width=Inches(1.6))
+    add_p("ABSTRACT", bold=True, size=14, align=WD_ALIGN_PARAGRAPH.CENTER, color=NAVY_RGB, space_after=12)
 
-    add_p("SRM INSTITUTE OF SCIENCE AND TECHNOLOGY", 
-          bold=True, size=12.5, align=WD_ALIGN_PARAGRAPH.CENTER, color=NAVY_RGB, space_after=2)
-    add_p("KATTANKULATHUR – 603 203", 
-          bold=True, size=11, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=14)
-
-    add_p("BONAFIDE CERTIFICATE", 
-          bold=True, size=13.5, align=WD_ALIGN_PARAGRAPH.CENTER, color=NAVY_RGB, space_after=16)
-
-    cert_text = (
-        "Certified that 21CSC206P – Project report titled “MARKET SURVEILLANCE ENGINE FOR ELECTRONIC TRADING (MSEET)” "
-        "is the bonafide work of “Poola Sai Kruthi Pranav [RA2511027010145], Shivika Chaubey [RA2511027010165], "
-        "and M Vishal [RA2511027010139]” of Section AR2 who carried out the project work under my supervision. "
-        "Certified further, that to the best of my knowledge the work reported herein does not form any other project report "
-        "or dissertation on the basis of which a degree or award was conferred on an earlier occasion on this or any other candidate."
+    abs_1 = (
+        "The MARKET SURVEILLANCE ENGINE FOR ELECTRONIC TRADING (MSEET) is an enterprise-grade desktop surveillance "
+        "and market integrity application developed natively in Java 8+ Swing. Modern financial exchanges and multi-lateral trading "
+        "facilities (MTFs) generate massive volumes of orders, high-frequency quote updates, and rapid cancellations across microsecond "
+        "timescales. Within this dense order flow, manipulative market behaviors—most notably spoofing, quote stuffing, and layering—"
+        "distort price discovery, inflict adverse selection on legitimate liquidity providers, and severely undermine capital market stability. "
+        "Manual inspection and batch-oriented end-of-day compliance audits are thoroughly inadequate for modern electronic trading environments. "
+        "MSEET resolves this urgent technological challenge by providing a real-time, streaming surveillance engine equipped with "
+        "multivariate statistical predictive analytics, dynamic anomaly detection, forensic alert triage, and automated regulatory compliance reporting."
     )
-    add_p(cert_text, size=11.5, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_after=18, line_spacing=1.3)
+    add_p(abs_1, size=11, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_after=8, line_spacing=1.22)
 
-    doc_desc = (
-        "The work presented in this report describes the complete design, algorithmic formulation, and production implementation "
-        "of a high-performance Java-based market surveillance system. The application performs real-time streaming market data "
-        "monitoring, identifies manipulative trading behaviors (such as spoofing, quote stuffing, and layering), executes predictive "
-        "anomaly calculations, manages complete forensic alert triage lifecycles, and generates formal regulatory compliance reports "
-        "adhering to US Federal Reserve SR 11-7 and EU MiFID II RTS 6 standards."
+    abs_2 = (
+        "The algorithmic core of MSEET continuously evaluates incoming tick-by-tick order flows using a high-throughput, "
+        "streaming analytical pipeline. The engine executes online 3-point least squares linear regression for ultra-low latency forward "
+        "price trend estimation, adaptive Exponential Moving Average (EMA) filtering for noise reduction, and rolling statistical variance "
+        "analysis for Z-score anomaly detection. These statistical metrics are unified through a multi-factor scoring function "
+        "(weighting volume deviation, order cancellation ratio, and short-term volatility) and mapped via a calibrated sigmoid transformation "
+        "into a bounded abuse probability score: P(abuse) in [0, 1]. The system automatically classifies trading risk into four distinct operational "
+        "tiers: Low (<0.35), Medium (0.35–0.60), High (0.60–0.80), and Critical (>=0.80), triggering immediate forensic investigation workflows."
     )
-    add_p(doc_desc, size=11.5, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_after=36, line_spacing=1.3)
+    add_p(abs_2, size=11, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_after=8, line_spacing=1.22)
 
-    sig_tbl = doc.add_table(rows=1, cols=2)
-    sig_tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
-    cell_l = sig_tbl.cell(0, 0)
-    cell_r = sig_tbl.cell(0, 1)
-    cell_l.width = Inches(3.4)
-    cell_r.width = Inches(3.4)
+    abs_3 = (
+        "Architecturally, MSEET is engineered under strict zero-dependency principles using pure Java Standard Edition (SE) without third-party "
+        "runtime frameworks. To eliminate thread contention and UI freezing, the application enforces a single-timer Event Dispatch Thread (EDT) "
+        "synchronization architecture coupled with zero-garbage-collection O(1) circular ring buffers. To render high-density charts at a smooth "
+        "60 frames per second, a Min-Max bucket decimation algorithm compresses tens of thousands of data points into display-ready visual peaks and troughs. "
+        "Empirical benchmarks demonstrate that MSEET processes over 380,000 order records per second with an average per-tick latency under 0.003 ms (3 microseconds) "
+        "and an ultra-compact heap footprint of only 8.4 MB. The integrated self-validating streaming confusion matrix reports an empirical classification "
+        "accuracy of 94.2%, precision of 92.8%, recall of 91.5%, and an F1-score of 92.1%. Furthermore, MSEET integrates a formal Model Risk Governance "
+        "audit engine conforming directly with US Federal Reserve Supervisory Letter SR 11-7 and European Union MiFID II Regulatory Technical Standard 6 (RTS 6 Article 17)."
+    )
+    add_p(abs_3, size=11, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_after=12, line_spacing=1.22)
 
-    def populate_sig(cell, role, name, designation, dept):
-        p = cell.paragraphs[0]
-        p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-        p.paragraph_format.line_spacing = 1.12
-        p.paragraph_format.space_after = Pt(2)
-        r0 = p.add_run("SIGNATURE\n\n\n\n")
-        r0.bold = True
-        r0.font.size = Pt(10.5)
-        r1 = p.add_run(f"{name}\n")
-        r1.bold = True
-        r1.font.size = Pt(11)
-        r1.font.color.rgb = NAVY_RGB
-        r2 = p.add_run(f"{role}\n{designation}\n{dept}\nSRM Institute of Science and Technology")
-        r2.font.size = Pt(10)
-
-    populate_sig(cell_l, "SUPERVISOR", "DR. S. VENKATESH", "Assistant Professor", "Department of Data Science and Business Systems")
-    populate_sig(cell_r, "HEAD OF DEPARTMENT", "DR. KAVITHA V.", "Professor & Head", "Department of Data Science and Business Systems")
+    add_p("Keywords: Market Surveillance, Electronic Trading, High-Frequency Trading (HFT), Spoofing Detection, Statistical Anomaly Detection, "
+          "Linear Regression, Exponential Moving Average, Z-Score, Java Swing, Model Risk Management, MiFID II RTS 6, SR 11-7.",
+          bold=True, italic=True, size=10.5, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_after=0)
 
     doc.add_page_break() # -> PAGE 3
 
     # =========================================================================
-    # PAGE 3: OWN WORK DECLARATION FORM (MANDATORY PAGE 3)
+    # PAGE 3: OWN WORK DECLARATION FORM (MATCHING IMAGE 3 TEMPLATE)
     # =========================================================================
     add_p("Department of Data Science and Business Systems", bold=True, size=12, align=WD_ALIGN_PARAGRAPH.CENTER, color=NAVY_RGB, space_after=2)
     add_p("SRM Institute of Science & Technology", bold=True, size=11.5, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=2)
@@ -399,7 +387,71 @@ def create_25page_report():
     doc.add_page_break() # -> PAGE 4
 
     # =========================================================================
-    # PAGE 4: ACKNOWLEDGEMENTS (MANDATORY PAGE 4)
+    # PAGE 4: BONAFIDE CERTIFICATE (MATCHING IMAGE 4 TEMPLATE)
+    # =========================================================================
+    logo_small = "/Users/pskp/.gemini/antigravity/scratch/MSSET/srm_logo_small_clean.png"
+    if os.path.exists(logo_small):
+        p_cert_logo = doc.add_paragraph()
+        p_cert_logo.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p_cert_logo.paragraph_format.space_after = Pt(4)
+        r_cl = p_cert_logo.add_run()
+        r_cl.add_picture(logo_small, width=Inches(1.6))
+
+    add_p("SRM INSTITUTE OF SCIENCE AND TECHNOLOGY", 
+          bold=True, size=12.5, align=WD_ALIGN_PARAGRAPH.CENTER, color=NAVY_RGB, space_after=2)
+    add_p("KATTANKULATHUR – 603 203", 
+          bold=True, size=11, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=14)
+
+    add_p("BONAFIDE CERTIFICATE", 
+          bold=True, size=13.5, align=WD_ALIGN_PARAGRAPH.CENTER, color=NAVY_RGB, space_after=16)
+
+    cert_text = (
+        "Certified that 21CSC206P – Project report titled “MARKET SURVEILLANCE ENGINE FOR ELECTRONIC TRADING (MSEET)” "
+        "is the bonafide work of “Poola Sai Kruthi Pranav [RA2511027010145], Shivika Chaubey [RA2511027010165], "
+        "and M Vishal [RA2511027010139]” of Section AR2 who carried out the project work under my supervision. "
+        "Certified further, that to the best of my knowledge the work reported herein does not form any other project report "
+        "or dissertation on the basis of which a degree or award was conferred on an earlier occasion on this or any other candidate."
+    )
+    add_p(cert_text, size=11.5, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_after=18, line_spacing=1.3)
+
+    doc_desc = (
+        "The work presented in this report describes the complete design, algorithmic formulation, and production implementation "
+        "of a high-performance Java-based market surveillance system. The application performs real-time streaming market data "
+        "monitoring, identifies manipulative trading behaviors (such as spoofing, quote stuffing, and layering), executes predictive "
+        "anomaly calculations, manages complete forensic alert triage lifecycles, and generates formal regulatory compliance reports "
+        "adhering to US Federal Reserve SR 11-7 and EU MiFID II RTS 6 standards."
+    )
+    add_p(doc_desc, size=11.5, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_after=36, line_spacing=1.3)
+
+    sig_tbl = doc.add_table(rows=1, cols=2)
+    sig_tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
+    cell_l = sig_tbl.cell(0, 0)
+    cell_r = sig_tbl.cell(0, 1)
+    cell_l.width = Inches(3.4)
+    cell_r.width = Inches(3.4)
+
+    def populate_sig(cell, role, name, designation, dept):
+        p = cell.paragraphs[0]
+        p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        p.paragraph_format.line_spacing = 1.12
+        p.paragraph_format.space_after = Pt(2)
+        r0 = p.add_run("SIGNATURE\n\n\n\n")
+        r0.bold = True
+        r0.font.size = Pt(10.5)
+        r1 = p.add_run(f"{name}\n")
+        r1.bold = True
+        r1.font.size = Pt(11)
+        r1.font.color.rgb = NAVY_RGB
+        r2 = p.add_run(f"{role}\n{designation}\n{dept}\nSRM Institute of Science and Technology")
+        r2.font.size = Pt(10)
+
+    populate_sig(cell_l, "SUPERVISOR", "DR. S. VENKATESH", "Assistant Professor", "Department of Data Science and Business Systems")
+    populate_sig(cell_r, "HEAD OF DEPARTMENT", "DR. KAVITHA V.", "Professor & Head", "Department of Data Science and Business Systems")
+
+    doc.add_page_break() # -> PAGE 5
+
+    # =========================================================================
+    # PAGE 5: ACKNOWLEDGEMENTS (MATCHING IMAGE 5 TEMPLATE)
     # =========================================================================
     add_p("ACKNOWLEDGEMENTS", bold=True, size=14, align=WD_ALIGN_PARAGRAPH.CENTER, color=NAVY_RGB, space_after=12)
 
@@ -421,56 +473,10 @@ def create_25page_report():
     add_p("\nAuthors:\nPoola Sai Kruthi Pranav\nShivika Chaubey\nM Vishal", 
           bold=True, size=11, align=WD_ALIGN_PARAGRAPH.RIGHT, space_after=0)
 
-    doc.add_page_break() # -> PAGE 5
-
-    # =========================================================================
-    # PAGE 5: ABSTRACT & KEYWORDS (MANDATORY PAGE 5)
-    # =========================================================================
-    add_p("ABSTRACT", bold=True, size=14, align=WD_ALIGN_PARAGRAPH.CENTER, color=NAVY_RGB, space_after=12)
-
-    abs_1 = (
-        "The MARKET SURVEILLANCE ENGINE FOR ELECTRONIC TRADING (MSEET) is an enterprise-grade desktop surveillance "
-        "and market integrity application developed natively in Java 8+ Swing. Modern financial exchanges and multi-lateral trading "
-        "facilities (MTFs) generate massive volumes of orders, high-frequency quote updates, and rapid cancellations across microsecond "
-        "timescales. Within this dense order flow, manipulative market behaviors—most notably spoofing, quote stuffing, and layering—"
-        "distort price discovery, inflict adverse selection on legitimate liquidity providers, and severely undermine capital market stability. "
-        "Manual inspection and batch-oriented end-of-day compliance audits are thoroughly inadequate for modern electronic trading environments. "
-        "MSEET resolves this urgent technological challenge by providing a real-time, streaming surveillance engine equipped with "
-        "multivariate statistical predictive analytics, dynamic anomaly detection, forensic alert triage, and automated regulatory compliance reporting."
-    )
-    add_p(abs_1, size=11, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_after=8, line_spacing=1.22)
-
-    abs_2 = (
-        "The algorithmic core of MSEET continuously evaluates incoming tick-by-tick order flows using a high-throughput, "
-        "streaming analytical pipeline. The engine executes online 3-point least squares linear regression for ultra-low latency forward "
-        "price trend estimation, adaptive Exponential Moving Average (EMA) filtering for noise reduction, and rolling statistical variance "
-        "analysis for Z-score anomaly detection. These statistical metrics are unified through a multi-factor scoring function "
-        "(weighting volume deviation, order cancellation ratio, and short-term volatility) and mapped via a calibrated sigmoid transformation "
-        "into a bounded abuse probability score: P(abuse) in [0, 1]. The system automatically classifies trading risk into four distinct operational "
-        "tiers: Low (<0.35), Medium (0.35–0.60), High (0.60–0.80), and Critical (>=0.80), triggering immediate forensic investigation workflows."
-    )
-    add_p(abs_2, size=11, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_after=8, line_spacing=1.22)
-
-    abs_3 = (
-        "Architecturally, MSEET is engineered under strict zero-dependency principles using pure Java Standard Edition (SE) without third-party "
-        "runtime frameworks. To eliminate thread contention and UI freezing, the application enforces a single-timer Event Dispatch Thread (EDT) "
-        "synchronization architecture coupled with zero-garbage-collection O(1) circular ring buffers. To render high-density charts at a smooth "
-        "60 frames per second, a Min-Max bucket decimation algorithm compresses tens of thousands of data points into display-ready visual peaks and troughs. "
-        "Empirical benchmarks demonstrate that MSEET processes over 380,000 order records per second with an average per-tick latency under 0.003 ms (3 microseconds) "
-        "and an ultra-compact heap footprint of only 8.4 MB. The integrated self-validating streaming confusion matrix reports an empirical classification "
-        "accuracy of 94.2%, precision of 92.8%, recall of 91.5%, and an F1-score of 92.1%. Furthermore, MSEET integrates a formal Model Risk Governance "
-        "audit engine conforming directly with US Federal Reserve Supervisory Letter SR 11-7 and European Union MiFID II Regulatory Technical Standard 6 (RTS 6 Article 17)."
-    )
-    add_p(abs_3, size=11, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_after=12, line_spacing=1.22)
-
-    add_p("Keywords: Market Surveillance, Electronic Trading, High-Frequency Trading (HFT), Spoofing Detection, Statistical Anomaly Detection, "
-          "Linear Regression, Exponential Moving Average, Z-Score, Java Swing, Model Risk Management, MiFID II RTS 6, SR 11-7.",
-          bold=True, italic=True, size=10.5, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_after=0)
-
     doc.add_page_break() # -> PAGE 6
 
     # =========================================================================
-    # PAGE 6: TABLE OF CONTENTS (MANDATORY PAGE 6)
+    # PAGE 6: TABLE OF CONTENTS (PAGE 6)
     # =========================================================================
     add_p("TABLE OF CONTENTS", bold=True, size=14, align=WD_ALIGN_PARAGRAPH.CENTER, color=NAVY_RGB, space_after=12)
 
@@ -661,7 +667,7 @@ def create_25page_report():
         bg = "FFFFFF" if idx % 2 == 0 else "F8FAFC"
         for ci in range(3):
             set_cell_background(row.cells[ci], bg)
-            set_cell_margins(row.cells[ci], 25, 25, 50, 50)
+            set_cell_margins(row.cells[ci], 25, 25, 40, 40)
             p = row.cells[ci].paragraphs[0]
             p.paragraph_format.line_spacing = 1.05
             for r in p.runs:
@@ -895,7 +901,6 @@ def create_25page_report():
         "Score S is mapped to a bounded probability via a calibrated logistic sigmoid function: P(abuse) = 1 / (1 + exp(-5.0 * (S - 0.50)))."
     )
 
-    # Risk Bands Table
     risk_data = [
         (">= 0.80", "CRITICAL", "#EF4444 (Crimson Red)", "Immediate intervention; automatic priority alert; high probability of manipulation."),
         (">= 0.60 and < 0.80", "HIGH", "#F97316 (Amber Orange)", "Priority investigation queue; elevated cancellation or volume anomalies requiring review."),
